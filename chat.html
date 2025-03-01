@@ -1,0 +1,354 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Co OLABS</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0d0d2b;
+            color: #f1f1f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .chat-container {
+            width: 400px;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-box {
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            background-color: #2a2a2a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            background-color: #FF007F;
+            align-self: flex-end;
+        }
+
+        .message.others {
+            background-color: #444;
+            align-self: flex-start;
+        }
+
+        .message-time {
+            font-size: 0.9em;
+            color: #aaa;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .input-area {
+            display: flex;
+            border-top: 1px solid #444;
+            background-color: #1e1e1e;
+            padding: 10px;
+        }
+
+        .input-area input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 2px solid #444;
+            border-radius: 5px;
+            background-color: #2a2a2a;
+            color: white;
+            font-size: 16px;
+        }
+
+        .input-area button {
+            padding: 10px;
+            margin-left: 10px;
+            background-color: #FF007F;
+            color: #121212;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .input-area button:hover {
+            background-color: #CC0066;
+        }
+
+        #username-input {
+            padding: 10px;
+            width: 200px;
+            border: 2px solid #444;
+            border-radius: 5px;
+            background-color: #2a2a2a;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .topic-select, .class-select, .stream-select {
+            margin-top: 10px;
+            color: #FF007F;
+            text-align: center;
+        }
+
+        .topic-select select, .class-select select, .stream-select select {
+            padding: 10px;
+            border: 2px solid #444;
+            border-radius: 5px;
+            background-color: #2a2a2a;
+            color: white;
+            font-size: 16px;
+        }
+
+        .back-button {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #FF007F;
+            color: #121212;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background-color: #CC0066;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>CO CHAT</h1>
+    
+    <input type="text" id="username-input" placeholder="Enter your name..." />
+    <button onclick="setUsername()">Join Chat</button>
+
+    <div class="class-select">
+        <label for="class">Select Class: </label>
+        <select id="class" onchange="updateTopicsAndStreams()">
+            <option value="" disabled selected>Select your class</option>
+            <option value="6th Grade">6th Grade</option>
+            <option value="7th Grade">7th Grade</option>
+            <option value="8th Grade">8th Grade</option>
+            <option value="9th Grade">9th Grade</option>
+            <option value="10th Grade">10th Grade</option>
+            <option value="11th Grade">11th Grade</option>
+            <option value="12th Grade">12th Grade</option>
+        </select>
+    </div>
+
+    <div class="stream-select" style="display:none;">
+        <label for="stream">Select Stream: </label>
+        <select id="stream">
+            <option value="" disabled selected>Select your stream</option>
+            <option value="Science">Science</option>
+            <option value="Commerce">Commerce</option>
+            <option value="Arts">Arts</option>
+        </select>
+    </div>
+
+    <div class="topic-select" style="display:none;">
+        <label for="topic">Select Topic: </label>
+        <select id="topic">
+            <!-- Topics will be dynamically updated based on class selection -->
+        </select>
+    </div>
+
+    <div class="chat-container" id="chat-container" style="display:none;">
+        <div class="topic-heading" id="topic-heading"></div>
+        <div class="class-heading" id="class-heading"></div>
+        <div class="stream-heading" id="stream-heading"></div>
+        <div class="chat-box" id="chat-box"></div>
+        <div class="input-area">
+            <input type="text" id="chat-input" placeholder="Type a message..." disabled>
+            <button onclick="sendMessage()" disabled>Send</button>
+        </div>
+        <button class="back-button" onclick="goBack()">Back</button>
+    </div>
+
+    <script>
+        const socket = io('http://localhost:3000');
+        let username = "";
+        let topic = "";
+        let userClass = "";
+        let userStream = "";
+
+        const topics = {
+            "6th Grade": ["Mathematics", "Science", "English", "Social Studies", "Computer", "Hindi", "Malayalam", "Sanskrit"],
+            "7th Grade": ["Maths", "Science", "English", "Social Science", "Computer", "Hindi", "Malayalam", "Sanskrit"],
+            "8th Grade": ["Maths", "Biology", "Chemistry", "Physics", "History", "Civics", "Geography", "Computer", "English", "Hindi", "Malayalam", "Sanskrit"],
+            "9th Grade": ["Maths", "Biology", "Chemistry", "Physics", "History", "Civics", "Geography", "Economics", "Computer", "English", "Hindi", "Malayalam", "Sanskrit"],
+            "10th Grade": ["Maths", "Biology", "Chemistry", "Physics", "History", "Civics", "Geography", "Economics", "Computer", "English", "Hindi", "Malayalam", "Sanskrit"],
+            "11th Grade": {
+                "Science": ["Physics", "Biology", "Chemistry", "Mathematics", "Computer Science", "Informatics Practices", "English"],
+                "Commerce": ["Accountancy", "Business Studies", "Economics", "Mathematics", "Informatics Practices", "English"],
+                "Arts": ["History", "Geography", "Political Science", "Psychology", "Sociology", "Economics", "English"]
+            },
+            "12th Grade": {
+                "Science": ["Physics", "Biology", "Chemistry", "Mathematics", "Computer Science", "Informatics Practices", "English"],
+                "Commerce": ["Accountancy", "Business Studies", "Economics", "Mathematics", "Informatics Practices", "English"],
+                "Arts": ["History", "Geography", "Political Science", "Psychology", "Sociology", "Economics", "English"]
+            }
+        };
+
+        function updateTopicsAndStreams() {
+            const classSelect = document.getElementById("class");
+            const topicSelect = document.getElementById("topic");
+            const streamSelect = document.getElementById("stream");
+            const selectedClass = classSelect.value;
+
+            // Clear previous topics
+            topicSelect.innerHTML = "";
+
+            if (selectedClass === "11th Grade" || selectedClass === "12th Grade") {
+                // Show the stream select dropdown
+                document.querySelector(".stream-select").style.display = "block";
+                streamSelect.onchange = updateTopics;
+            } else {
+                // Hide the stream select dropdown
+                document.querySelector(".stream-select").style.display = "none";
+                // Populate topics based on selected class
+                topics[selectedClass].forEach(topic => {
+                    const option = document.createElement("option");
+                    option.value = topic;
+                    option.textContent = topic;
+                    topicSelect.appendChild(option);
+                });
+                // Show the topic select dropdown
+                document.querySelector(".topic-select").style.display = "block";
+            }
+        }
+
+        function updateTopics() {
+            const classSelect = document.getElementById("class");
+            const streamSelect = document.getElementById("stream");
+            const topicSelect = document.getElementById("topic");
+            const selectedClass = classSelect.value;
+            const selectedStream = streamSelect.value;
+
+            // Clear previous topics
+            topicSelect.innerHTML = "";
+
+            // Populate topics based on selected class and stream
+            topics[selectedClass][selectedStream].forEach(topic => {
+                const option = document.createElement("option");
+                option.value = topic;
+                option.textContent = topic;
+                topicSelect.appendChild(option);
+            });
+            
+            // Show the topic select dropdown
+            document.querySelector(".topic-select").style.display = "block";
+        }
+
+        function setUsername() {
+            const input = document.getElementById("username-input");
+            if (input.value.trim() === "") return alert("Enter a valid name!");
+            username = input.value.trim();
+            topic = document.getElementById("topic").value;
+            userClass = document.getElementById("class").value;
+            if (userClass === "11th Grade" || userClass === "12th Grade") {
+                userStream = document.getElementById("stream").value;
+            }
+            document.getElementById("chat-container").style.display = "flex";
+            document.getElementById("username-input").style.display = "none";
+            document.querySelector("button").style.display = "none";
+            document.getElementById("topic").style.display = "none";
+            document.querySelector("label[for='topic']").style.display = "none";
+            document.getElementById("class").style.display = "none";
+            document.querySelector("label[for='class']").style.display = "none";
+            if (userClass === "11th Grade" || userClass === "12th Grade") {
+                document.getElementById("stream").style.display = "none";
+                document.querySelector("label[for='stream']").style.display = "none";
+            }
+            document.getElementById("chat-input").disabled = false;
+            document.querySelector(".input-area button").disabled = false;
+            document.getElementById("topic-heading").textContent = `Current Topic: ${topic}`;
+            document.getElementById("class-heading").textContent = `Current Class: ${userClass}`;
+            if (userStream) {
+                document.getElementById("stream-heading").textContent = `Current Stream: ${userStream}`;
+            }
+            socket.emit("user-joined", { username, topic, userClass, userStream });
+        }
+
+        function sendMessage() {
+            const input = document.getElementById("chat-input");
+            const message = input.value.trim();
+            if (message === "") return;
+
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            socket.emit("chat-message", { user: username, message, topic, userClass, userStream, timestamp });
+            displayMessage({ user: username, message, timestamp }, true);
+
+            input.value = "";
+        }
+
+        function displayMessage(data, isUser) {
+            const chatBox = document.getElementById("chat-box");
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message");
+            messageDiv.classList.add(isUser ? "user" : "others");
+            messageDiv.innerHTML = `<strong>${data.user}</strong>: ${data.message} <div class="message-time">${data.timestamp}</div>`;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function goBack() {
+            document.getElementById("chat-container").style.display = "none";
+            document.getElementById("username-input").style.display = "block";
+            document.querySelector("button").style.display = "block";
+            document.getElementById("topic").style.display = "block";
+            document.querySelector("label[for='topic']").style.display = "block";
+            document.getElementById("class").style.display = "block";
+            document.querySelector("label[for='class']").style.display = "block";
+            if (userClass === "11th Grade" || userClass === "12th Grade") {
+                document.getElementById("stream").style.display = "block";
+                document.querySelector("label[for='stream']").style.display = "block";
+            }
+            document.getElementById("username-input").value = "";
+            document.getElementById("chat-input").disabled = true;
+            document.querySelector(".input-area button").disabled = true;
+        }
+
+        socket.on("chat-message", (data) => {
+            if (data.topic === topic && data.userClass === userClass && data.userStream === userStream) {
+                displayMessage(data, false);
+            }
+        });
+
+        // Allow sending message by pressing Enter key
+        document.getElementById("chat-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
+
+        // Allow setting username by pressing Enter key
+        document.getElementById("username-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                setUsername();
+            }
+        });
+    </script>
+
+</body>
+</html>

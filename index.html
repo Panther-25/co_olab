@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Co OLabs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0D0D2B;
+            color: white;
+            font-family: Arial, sans-serif;
+            background-image: url('background-pattern.png');
+            background-size: cover;
+            background-position: center;
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #ff4dff, #ff007f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn-primary {
+            background: #ff007f;
+            padding: 10px 20px;
+            border-radius: 50px;
+            transition: background 0.3s;
+        }
+        .btn-primary:hover {
+            background: #ff4dff;
+        }
+        .hero-section {
+            position: relative;
+            text-align: center;
+            padding: 100px 0;
+        }
+        .hero-section svg {
+            width: 100%;
+            height: auto;
+        }
+        .hero-content {
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            transform: translateY(-50%);
+            text-align: left;
+        }
+        .phone-image {
+            position: absolute;
+            top: 50%;
+            left: 1200px;
+            transform: translate(-50%, -50%);
+            width: 250px;
+        }
+    </style>
+</head>
+<body>
+    <header class="flex justify-between items-center p-5 bg-gray-800">
+        <h1 class="text-xl font-bold gradient-text">CoLabs</h1>
+        <nav>
+            <ul class="flex gap-6">
+                <li><a href="#about" class="hover:text-pink-400">About</a></li>
+                <li><a href="#contact" class="hover:text-pink-400">Contact</a></li>
+                <li><a href="login.html" class="hover:text-pink-400">Login</a></li>
+                <li><a href="signup.html" class="hover:text-pink-400">Sign Up</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero-section">
+        <svg width="1600" height="989" viewBox="0 0 1600 989" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path opacity="0.5" d="M-60 917.47V0H1778V989C1712.92 886.139 1421.26 780.323 1228.46 917.47C1035.66 1054.62 890.352 950.183 797.831 917.47C697.514 882.001 554.624 759.632 376.011 917.47C233.121 1043.74 25.7994 970.083 -60 917.47Z" fill="black"></path>
+            <ellipse cx="1200" cy="500" rx="250" ry="250" fill="#444444" />
+        </svg>
+        <div class="hero-content">
+            <h2 class="text-4xl font-bold">We Learn & <span class="gradient-text">Grow Together</span></h2>
+            <a href="signup.html" class="mt-6 inline-block btn-primary">Get Started</a>
+        </div>
+        <img src="C:/Users/aravi/OneDrive/Desktop/CoOlabs/phone1.png" alt="Phone" class="phone-image">
+    </section>
+
+    <section id="about" class="py-20 text-center">
+        <h3 class="text-3xl font-semibold mb-6">About Us</h3>
+        <p class="text-gray-400 max-w-2xl mx-auto">Diverse Perspectives: Peer-to-peer learning platforms allow students to engage in conversations and share ideas with other students of different backgrounds and cultures. This helps them in gaining exposure to different perspectives of the world.p>
+    </section>
+
+    <section id="contact" class="py-20 text-center">
+        <h3 class="text-3xl font-semibold mb-6">Contact Us</h3>
+        <p class="text-gray-400 max-w-2xl mx-auto">Want to collaborate with our team? Reach out to us!</p>
+        <p class="text-gray-300">Email: coolabs880@gmail.com</p>
+        <p class="text-gray-300">Phone: +1 234 567 890</p>
+        <form class="max-w-lg mx-auto bg-gray-800 p-6 rounded-lg shadow-lg mt-4">
+            <input type="text" placeholder="Your Name" class="w-full p-3 mb-4 rounded bg-gray-700 text-white">
+            <input type="email" placeholder="Your Email" class="w-full p-3 mb-4 rounded bg-gray-700 text-white">
+            <textarea placeholder="Your Message" class="w-full p-3 mb-4 rounded bg-gray-700 text-white"></textarea>
+            <button type="submit" class="btn-primary">Send</button>
+        </form>
+    </section>
+
+    <footer class="py-6 text-center bg-gray-800">&copy; 2025 CoOLabs. All rights reserved.</footer>
+</body>
+</html>
